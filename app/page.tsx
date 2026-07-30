@@ -15,10 +15,8 @@ export default async function HomePage() {
     getNewReleases(24),
     getPlaylistTracks(GLOBAL_CHART_PLAYLIST_ID, 10),
   ]);
-
   const latestAlbums = releases.status === "fulfilled" ? releases.value : [];
   const chartTracks: Track[] = chart.status === "fulfilled" ? chart.value : [];
-
   const heroTrack = chartTracks[0] ?? null;
 
   const latestAsTracks: Track[] = latestAlbums.map((a) => ({
@@ -33,7 +31,6 @@ export default async function HomePage() {
   return (
     <div>
       <Hero track={heroTrack} />
-
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
         <SectionHeader title="أحدث الإصدارات" href="/latest" />
         {latestAsTracks.length === 0 ? (
@@ -46,7 +43,6 @@ export default async function HomePage() {
           </div>
         )}
       </section>
-
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
         <SectionHeader title="الأكثر رواجًا الآن" href="/trending" />
         {chartTracks.length === 0 ? (
@@ -59,7 +55,6 @@ export default async function HomePage() {
           </div>
         )}
       </section>
-
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
         <SectionHeader title="تصفّح حسب النوع الموسيقي" />
         <div className="flex flex-wrap gap-3">
@@ -73,6 +68,10 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 text-center">
+        <PiPaymentTest />
       </section>
     </div>
   );
