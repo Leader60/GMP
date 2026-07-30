@@ -3,6 +3,10 @@
 declare global {
   interface Window {
     Pi?: {
+      authenticate: (
+        scopes: string[],
+        onIncompletePaymentFound: (payment: unknown) => void
+      ) => Promise<{ user: { username: string } }>;
       createPayment: (
         paymentData: {
           amount: number;
@@ -21,43 +25,55 @@ declare global {
 }
 
 export default function PiPaymentTest() {
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (typeof window === 'undefined' || !window.Pi) {
       alert('افتح التطبيق من Pi Browser');
       return;
     }
 
-    window.Pi.createPayment(
-      {
-        amount: 1,
-        memo: 'GMP Annual Subscription Test',
-        metadata: { app: 'GMP', type: 'test' },
-      },
-      {
-        onReadyForServerApproval: async (paymentId: string) => {
-          await fetch('/api/gmp/payments/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paymentId }),
-          });
+    try {
+      await window.Pi.authenticate(['payments'], (payment) => {
+        console.log('يوجد دفعة سابقة غير مكتملة:', payment);
+      });
+    } catch (err) {
+      alert('فشلت المصادقة: ' + (err instanceof Error ? err.message : String(err)));
+      return;
+    }
+
+    try {
+      window.Pi.createPayment(
+        {
+          amount: 1,
+          memo: 'GMP Annual Subscription Test',
+          metadata: { app: 'GMP', type: 'test' },
         },
-        onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-          await fetch('/api/gmp/payments/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paymentId, txid }),
-          });
-          alert('تم الدفع بنجاح ✅');
-        },
-        onCancel: (paymentId: string) => {
-          console.log('تم إلغاء الدفع:', paymentId);
-        },
-        onError: (error: Error) => {
-          console.error('خطأ في الدفع:', error);
-          alert('حدث خطأ أثناء الدفع');
-        },
-      }
-    );
+        {
+          onReadyForServerApproval: async (paymentId: string) => {
+            await fetch('/api/gmp/payments/approve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentId }),
+            });
+          },
+          onReadyForServerCompletion: async (paymentId: string, txid: string) => {
+            await fetch('/api/gmp/payments/complete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentId, txid }),
+            });
+            alert('تم الدفع بنجاح ✅');
+          },
+          onCancel: (paymentId: string) => {
+            alert('تم إلغاء الدفع');
+          },
+          onError: (error: Error) => {
+            alert('خطأ في الدفع: ' + error.message);
+          },
+        }
+      );
+    } catch (err) {
+      alert('خطأ غير متوقع: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   return (
