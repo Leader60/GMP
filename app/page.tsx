@@ -1,3 +1,4 @@
+import PiPaymentTest from "@/components/PiPaymentTest";
 import Hero from "@/components/Hero";
 import SectionHeader from "@/components/SectionHeader";
 import TrackCard from "@/components/TrackCard";
